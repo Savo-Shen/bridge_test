@@ -38,4 +38,73 @@ https://tushare.pro/document/1?doc_id=131
 4.最后你需要在README.md中说明你的api使用方法，方便我们进行测试。
 
 
+[结果]
 
+## API使用方法
+### 后端运行
+安装依赖
+```shell
+pip install djangorestframework django backtrader
+```
+运行后端
+```shell
+python manage.py runserver 0.0.0.0:8000
+```
+### API使用
+#### 设置周期以及对应回测的股票
+url: `http://localhost:8000/api/set_cycle_and_stock/`
+method: `POST`
+data: 
+```json
+{
+    "startTime": "2023-01-01",
+    "endTime": "2023-12-31",
+    "stockId": "000001,
+}
+```
+![post方法](res/imgs/post方法.png)
+
+#### 获取策略回测的结果
+url: `http://localhost:8000/api/get_result/`
+method: `GET`
+data: 
+```json
+{
+    "profit": 0.1,
+    "total_equity": 1100000
+}
+```
+![get方法](res/imgs/get方法.png)
+
+### 策略回测结果
+策略代码
+```python
+        # 买入条件：当12日的价格均线穿越(>)26日的价格均线时买入。
+        if self.m1[0] > self.m2[0] and self.m1[-1] < self.m2[-1]:  
+            if size > 0:
+                self.log('BUY, %.2f' % size)
+                self.log('Close, %.2f' % self.dataclose[0]) 
+                self.order = self.buy(size=size)  # 买入
+                self.log(f"12日均线：{self.m1[0]}，26日均线：{self.m2[0]}")
+        
+
+        # 卖出条件：当价格跌破26均线时卖出。
+        if self.m1[0] < self.m2[0] and self.m1[-1] > self.m2[-1]:  
+            if size > 0 and self.position.size > size:
+                self.log('SELL, %.2f' % size)
+                self.log('Close, %.2f' % self.dataclose[0]) 
+                self.order = self.sell(size=size)  # 卖出
+            elif self.position.size > 0:
+                self.log('SELL, %.2f' % self.position.size)
+                self.log('Close, %.2f' % self.dataclose[0]) 
+                self.order = self.sell(size=self.position.size)
+            self.log(f"12日均线：{self.m1[0]}，26日均线：{self.m2[0]}")
+        # self.log(f"持仓：{self.position.size}")
+```
+回测结果(图像显示)
+![回测结果](res/imgs/回测结果.png)
+
+### 备注
+- 本项目使用Django作为后端框架，使用backtrader作为回测框架
+- tushare由于新账户积分不够，所以无法使用，所以使用了本地数据，也就暂时无法实现指定股票的回测
+- AI部分的对话在prompt.txt中
